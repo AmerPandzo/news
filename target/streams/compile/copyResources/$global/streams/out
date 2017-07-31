@@ -1,0 +1,4 @@
+[0m[[0mdebug[0m] [0mCopy resource mappings: [0m
+[0m[[0mdebug[0m] [0m	(D:\Projects\MOPNews\src\main\resources\application.conf,D:\Projects\MOPNews\target\scala-2.12\classes\application.conf)[0m
+[0m[[0mdebug[0m] [0m	(D:\Projects\MOPNews\src\main\resources\public,D:\Projects\MOPNews\target\scala-2.12\classes\public)[0m
+[0m[[0mdebug[0m] [0m	(D:\Projects\MOPNews\src\main\resources\public\index.html,D:\Projects\MOPNews\target\scala-2.12\classes\public\index.html)[0m
