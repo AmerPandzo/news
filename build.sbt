@@ -21,6 +21,7 @@ libraryDependencies ++= {
     "com.typesafe.slick" %% "slick-hikaricp" % slickVersion,
     "com.typesafe.akka" %% "akka-http-spray-json" % "10.0.7",
     "org.postgresql" %  "postgresql" % "9.4-1201-jdbc41",
-    "joda-time" % "joda-time" % "2.9.9"
+    "joda-time" % "joda-time" % "2.9.9",
+    "com.github.etaty" %% "rediscala" % "1.8.0"
   )
 }

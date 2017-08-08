@@ -68,7 +68,49 @@ object NewsDAO extends BaseDao {
         _ <- db.run(Tags ++= imagesFields)
       } yield newId
     }
+  }
 
+  def update(id: Long, model: NewsItem): Future[Long] = {
 
+    val futureOldNews = db.run(News.filter(_.id === id).result)
+    futureOldNews.flatMap { oldNewsRows =>
+      val oldNews = oldNewsRows.head
+      val updateNews = News.filter(_.id === id).map { n =>
+        /* The columns which will be available to update: */
+        (
+          n.content,
+          n.title,
+          n.popularity,
+          n.createdDate,
+        )
+      }.update(
+        /* The values to set the columns on update */
+        (
+          model.content,
+          model.title,
+          model.popularity,
+          new Date(model.createdDate.toDate.getTime)
+        )
+      )
+
+      db.run(updateNews).flatMap { update =>
+
+        val deleteNewsTags = db.run(Tags.filter(_.newsId === oldNews.id).delete) // delete old images fields
+
+        val newTags = model.tag.toList.flatMap {
+          listOfTags => listOfTags.map{tag => TagsRow(tag, oldNews.id)}
+        }
+
+        val futureDeleteNewsData = for {
+          _ <- deleteNewsTags
+        } yield ()
+        futureDeleteNewsData.flatMap { _ => // when old recipes are delete, then add new
+          val futureInsertNewsData = for {
+            _ <- db.run(Tags ++= newTags)
+          } yield ()
+          futureInsertNewsData map (_ => update)
+        }
+      }
+    }
   }
 }

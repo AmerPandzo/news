@@ -1,0 +1,8 @@
+.tmp
+.gitreview
+.idea/*
+*.iml
+target/
+project/target/*
+project/project/*
+src/main/resources/application.conf
