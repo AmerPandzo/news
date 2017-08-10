@@ -31,8 +31,8 @@ trait NewsAPI extends JsonMappings {
       complete {
         //newsHandler ? GetNews(newsId)
         NewsDAO.findById(newsId).flatMap{ news =>
-          val nesto = newsHandler ? GetNews(news.title)
-          nesto.map{ ovo => ovo match {
+          val newsResponseFuture = newsHandler ? GetNews(news.title)
+          newsResponseFuture.map{ newsResponse => newsResponse match {
             case true =>
             case NewsItemForRedis => newsHandler ? NewsItemForRedis(news.id, news.title, news.content, news.createdDate, news.popularity, news.tag)
             }
