@@ -4,7 +4,7 @@
 		module="mopnews_2.12"
 		revision="1.0"
 		status="integration"
-		publication="20170730145603"
+		publication="20170809162506"
 	>
 		<description>
 		MOPNews
@@ -46,5 +46,6 @@
 		<dependency org="com.typesafe.akka" name="akka-http-spray-json_2.12" rev="10.0.7" conf="compile->default(compile)"/>
 		<dependency org="org.postgresql" name="postgresql" rev="9.4-1201-jdbc41" conf="compile->default(compile)"/>
 		<dependency org="joda-time" name="joda-time" rev="2.9.9" conf="compile->default(compile)"/>
+		<dependency org="com.github.etaty" name="rediscala_2.12" rev="1.8.0" conf="compile->default(compile)"/>
 	</dependencies>
 </ivy-module>

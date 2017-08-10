@@ -20,7 +20,9 @@ object Main extends App with Config with Routes with ConcreteRedis{
     override def db = RedisClient(host = redisUrl.getHost, port = redisUrl.getPort, password = pwd)
   }
 
-  val userHandler = system.actorOf(RedisServant.props(prodDb))
+  val newsHandler = system.actorOf(RedisServant.props(prodDb))
+
+  val popularityHandler = system.actorOf(PopularityServant.props(prodDb))
 
   Http().bindAndHandle(handler = logRequestResult("log")(routes), interface = httpInterface, port = httpPort)
 }

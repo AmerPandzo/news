@@ -4,7 +4,7 @@
 		module="mopnews-build"
 		revision="0.1-SNAPSHOT"
 		status="integration"
-		publication="20170730210008"
+		publication="20170809145426"
 		e:sbtVersion="0.13" e:scalaVersion="2.10"
 	>
 		<description>

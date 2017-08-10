@@ -11,8 +11,8 @@ import akka.http.scaladsl.server.Directives._
 import spray.json._
 import models.RedisServant._
 import akka.util.Timeout
-import scala.concurrent.{ExecutionContextExecutor, Future}
 import akka.pattern.ask
+import models.PopularityServant.{FetchPopularity, NewsItemForPopularity}
 
 case class UpsertRequest(username:String, password:String )
 
@@ -20,24 +20,58 @@ trait NewsAPI extends JsonMappings {
 
   import scala.concurrent.duration._
 
-  def userHandler: ActorRef
+  def newsHandler: ActorRef
+
+  def popularityHandler: ActorRef
 
   implicit def requestTimeout = Timeout(5 seconds)
 
   val newsAPI =
     (path("news"/LongNumber) & get ) {(newsId) =>
-      complete (NewsDAO.findById(newsId).map(_.toJson))
+      complete {
+        //newsHandler ? GetNews(newsId)
+        NewsDAO.findById(newsId).flatMap{ news =>
+          val nesto = newsHandler ? GetNews(news.title)
+          nesto.map{ ovo => ovo match {
+            case true =>
+            case NewsItemForRedis => newsHandler ? NewsItemForRedis(news.id, news.title, news.content, news.createdDate, news.popularity, news.tag)
+            }
+          }
+        }
+        NewsDAO.findById(newsId).map(_.toJson)
+      }
     }~
       (path("news") & post) { entity(as[NewsItem]) { news =>
         complete {
-          userHandler ? NewsItemForRedis(news.id, news.title, news.content, news.createdDate, news.popularity, news.tag)
-          NewsDAO.create(news).map(_.toJson)
+          val popularityfuture = popularityHandler ? FetchPopularity(NewsItemForPopularity(news.id, news.title, news.content, news.createdDate, news.popularity, news.tag))
+          popularityfuture.map { popularity =>
+            newsHandler ? NewsItemForRedis(news.id, news.title, news.content, news.createdDate, popularity.toString.toInt, news.tag)
+            val newnews = news.copy(popularity = popularity.toString.toInt)
+            NewsDAO.create(newnews).map(_.toJson)
+          }
         }
+       }
       }~
         (path("news" / LongNumber) & put) { id =>
           entity(as[NewsItem]) { news =>
-            complete(NewsDAO.update(id, news).map(_.toJson))
+            complete{
+              newsHandler ? NewsItemForRedis(news.id, news.title, news.content, news.createdDate, news.popularity, news.tag)
+              NewsDAO.update(id, news).map(_.toJson)
+            }
           }
+        }~
+        (path("search" / Segment) & get ) { (title) =>
+        complete {
+           val nesto = newsHandler ? SearchNews(title)
+          nesto.map(_.toString.toJson)
         }
-   }
+    }~
+      (path("delete" / LongNumber) & delete ) { newsId =>
+        complete {
+          NewsDAO.findById(newsId).flatMap{ news =>
+            newsHandler ? DeleteNews(news.title)
+            }
+          NewsDAO.delete(newsId).map(_.toJson)
+          }
+    }
 }

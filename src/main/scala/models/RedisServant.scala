@@ -7,7 +7,7 @@ import repository.Repo
 
 object RedisServant {
   def props(db: Repo): Props = Props(new RedisServant(db))
-  case class User(username: String, details: String)
+  case class SearchNews(username: String)
   case class NewsItemForRedis( id: Long,
                        title: String,
                        content: String,
@@ -15,8 +15,8 @@ object RedisServant {
                        popularity: Int,
                        tag: Option[List[String]])
   case class Update(username: String, details: String)
-  case class GetUser(username: String)
-  case class DeleteUser(username: String)
+  case class GetNews(username: String)
+  case class DeleteNews(username: String)
   case class UserNotFound(username: String)
   case class UserDeleted(username: String)
 }
@@ -27,5 +27,18 @@ class RedisServant(db: Repo) extends Actor with ActorLogging {
   override def receive: Receive = {
     case NewsItemForRedis(id, title, content, createdDate, popularity, tag) =>
       db.upsert(title.toLowerCase, Map("id" -> id.toString , "title" -> title, "content" -> content, "createdDate" -> createdDate.toString, "popularity" -> popularity.toString, "tags" -> tag.getOrElse(Nil).mkString(","))) pipeTo sender()
+
+    case GetNews(title) =>
+      //closing over the sender in Future is not safe. http://helenaedelson.com/?p=879
+      val requestor = sender()
+      db.get(title).foreach{
+        case Some(i) => requestor ! true
+        case None => requestor ! NewsItemForRedis
+      }
+    case SearchNews(title) =>
+      db.search(title.toLowerCase()) pipeTo sender()
+
+    case DeleteNews(title) =>
+      db.del(title.toLowerCase()) pipeTo sender()
   }
 }

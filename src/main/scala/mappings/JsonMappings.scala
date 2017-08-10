@@ -60,6 +60,42 @@ trait JsonMappings extends DefaultJsonProtocol {
       }
     }
   }
+
+  implicit object ArticleFormat extends RootJsonFormat[Article] {
+    // some fields are optional so we produce a list of options and
+    // then flatten it to only write the fields that were Some(..)
+    def write(item: Article) = JsObject(
+      List(
+        Some("author" -> item.author.toJson),
+        Some("title" -> item.title.toJson),
+        Some("description" -> item.description.toJson),
+        Some("url" -> item.url.toJson),
+        Some("urlToImage" -> item.urlToImage.toJson),
+        Some("publishedAt" -> item.publishedAt.toJson)
+      ).flatten: _*
+    )
+
+    // we use the "standard" getFields method to extract the mandatory fields.
+    // For optional fields we extract them directly from the fields map using get,
+    // which already handles the option wrapping for us so all we have to do is map the option
+    def read(json: JsValue) = {
+      val jsObject = json.asJsObject
+
+      jsObject.getFields("author","title", "description", "url", "urlToImage", "publishedAt") match {
+        case Seq(author,title, description, url, urlToImage, publishedAt) ⇒ Article(
+          author.convertTo[String],
+          title.convertTo[String],
+          description.convertTo[String],
+          url.convertTo[String],
+          urlToImage.convertTo[String],
+          publishedAt.convertTo[String]
+        )
+        case other ⇒ deserializationError("Cannot deserialize ProductItem: invalid input. Raw input: " + other)
+      }
+    }
+  }
       implicit val tagFormat = jsonFormat1(NewsTag)
       implicit val newsFormat = jsonFormat6(NewsItem)
+      implicit val articlesFormat = jsonFormat6(Article)
+      implicit val techCrouchFormat = jsonFormat4(TechCrouch)
     }

@@ -8,14 +8,12 @@ import models.definitions.NewsTable._
 import models.definitions.TagTable._
 import org.joda.time.DateTime
 import slick.jdbc.PostgresProfile.api._
-
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import utils.DatabaseConfig
 
 object NewsDAO extends BaseDao {
 
-  def findById(id: Long): Future[NewsItem] = {
+  def findById(id: Long)(implicit ec: ExecutionContext): Future[NewsItem] = {
 
     val newsQuery = for {
       news <- News.filter(_.id === id)
@@ -49,7 +47,7 @@ object NewsDAO extends BaseDao {
     }
   }
 
-  def create(model: NewsItem): Future[Long] = {
+  def create(model: NewsItem)(implicit ec: ExecutionContext): Future[Long] = {
 
     val newsRow = NewsRow(
       content = model.content,
@@ -70,7 +68,7 @@ object NewsDAO extends BaseDao {
     }
   }
 
-  def update(id: Long, model: NewsItem): Future[Long] = {
+  def update(id: Long, model: NewsItem)(implicit ec: ExecutionContext): Future[Long] = {
 
     val futureOldNews = db.run(News.filter(_.id === id).result)
     futureOldNews.flatMap { oldNewsRows =>
@@ -111,6 +109,17 @@ object NewsDAO extends BaseDao {
           futureInsertNewsData map (_ => update)
         }
       }
+    }
+  }
+
+  def delete(id: Long)(implicit ec: ExecutionContext): Future[Int] = {
+
+    val futureOldNews = db.run(News.filter(_.id === id).result)
+    futureOldNews.flatMap { oldNewsRows =>
+      val oldNews = oldNewsRows.head
+      db.run(Tags.filter(_.newsId === oldNews.id).delete) // delete tags
+      val deleteNews = News.filter(_.id === oldNews.id).delete
+      db.run(deleteNews)
     }
   }
 }
