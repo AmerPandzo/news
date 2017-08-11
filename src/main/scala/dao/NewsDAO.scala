@@ -2,14 +2,13 @@ package dao
 
 import java.sql.Date
 
-import dao.NewsDAO._
 import models._
 import models.definitions.NewsTable._
 import models.definitions.TagTable._
 import org.joda.time.DateTime
 import slick.jdbc.PostgresProfile.api._
+
 import scala.concurrent.{ExecutionContext, Future}
-import utils.DatabaseConfig
 
 object NewsDAO extends BaseDao {
 
@@ -60,10 +59,10 @@ object NewsDAO extends BaseDao {
     val insertNews = db.run((News returning News.map(_.id)) += newsRow)
     insertNews.flatMap { newId =>
 
-      val imagesFields = model.tag.map { listOfTags => listOfTags.map {tag => TagsRow(newsId = newId, name = tag )} }.get
+      val tags = model.tag.map { listOfTags => listOfTags.map {tag => TagsRow(newsId = newId, name = tag )} }.get
 
       for {
-        _ <- db.run(Tags ++= imagesFields)
+        _ <- db.run(Tags ++= tags)
       } yield newId
     }
   }
@@ -93,7 +92,7 @@ object NewsDAO extends BaseDao {
 
       db.run(updateNews).flatMap { update =>
 
-        val deleteNewsTags = db.run(Tags.filter(_.newsId === oldNews.id).delete) // delete old images fields
+        val deleteNewsTags = db.run(Tags.filter(_.newsId === oldNews.id).delete) // delete old tags
 
         val newTags = model.tag.toList.flatMap {
           listOfTags => listOfTags.map{tag => TagsRow(tag, oldNews.id)}
@@ -102,7 +101,7 @@ object NewsDAO extends BaseDao {
         val futureDeleteNewsData = for {
           _ <- deleteNewsTags
         } yield ()
-        futureDeleteNewsData.flatMap { _ => // when old recipes are delete, then add new
+        futureDeleteNewsData.flatMap { _ => // when old news are delete, then add new
           val futureInsertNewsData = for {
             _ <- db.run(Tags ++= newTags)
           } yield ()

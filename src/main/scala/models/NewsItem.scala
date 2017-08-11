@@ -1,6 +1,5 @@
 package models
 
-import models.definitions.TagTable.TagsRow
 import org.joda.time.DateTime
 
 case class NewsItem(

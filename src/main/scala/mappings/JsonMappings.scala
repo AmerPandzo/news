@@ -98,4 +98,5 @@ trait JsonMappings extends DefaultJsonProtocol {
       implicit val newsFormat = jsonFormat6(NewsItem)
       implicit val articlesFormat = jsonFormat6(Article)
       implicit val techCrouchFormat = jsonFormat4(TechCrouch)
+      implicit val searchFormat = jsonFormat1(NewsSearch)
     }

@@ -1,9 +1,7 @@
 package dao
 
-import models.definitions._
-import slick.dbio.{Effect, NoStream}
-import slick.lifted.TableQuery
-import slick.sql.{FixedSqlAction, FixedSqlStreamingAction, SqlAction}
+import slick.dbio.NoStream
+import slick.sql.{FixedSqlStreamingAction, SqlAction}
 import utils.DatabaseConfig
 
 import scala.concurrent.Future

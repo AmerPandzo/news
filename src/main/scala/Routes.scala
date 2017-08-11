@@ -3,7 +3,7 @@ import api._
 
 trait Routes extends ApiErrorHandler with NewsAPI{
   val routes =
-    pathPrefix("v1") {
+    pathPrefix("news") {
       newsAPI
     } ~ path("")(getFromResource("public/index.html"))
 }
